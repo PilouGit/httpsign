@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -54,7 +54,7 @@ public class SigningResponse {
                         (oldValue, newValue) -> newValue,
                         HttpHeaders::new
                 ));
-        java.util.Map<DerivedComponent,String> derivedComponentStringMap=new HashMap<DerivedComponent,String>();
+        java.util.Map<DerivedComponent,String> derivedComponentStringMap=new EnumMap<>(DerivedComponent.class);
         signConfiguration.getDerivedComponentList().forEach(
                 derivedComponent -> {
                     try {

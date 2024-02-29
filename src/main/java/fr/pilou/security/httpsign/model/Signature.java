@@ -1,7 +1,5 @@
 package fr.pilou.security.httpsign.model;
 
-import java.security.Signer;
-import java.util.List;
 
 public class Signature {
      private  Long timeBeforeExpiration;

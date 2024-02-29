@@ -1,9 +1,5 @@
 package fr.pilou.security.httpsign.model;
 
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
 import java.util.List;
