@@ -22,8 +22,8 @@ public class SignConfigurationService {
         signature.setTimeBeforeExpiration(3L);
         signature.setKeyId(StringUtils.lowerCase(RandomStringUtils.randomAlphanumeric(5)));
         SignConfiguration configuration=new SignConfiguration();
-        configuration.getDerivedComponentList().add(DerivedComponent.METHOD);
-        configuration.getMandatoryHeader().add("Content-Digest");
+        configuration.getDerivedRequestComponentList().add(DerivedComponent.METHOD);
+        configuration.getMandatoryResponseHeader().add("Content-Digest");
         configuration.setSignature(signature);
         return configuration;
     }

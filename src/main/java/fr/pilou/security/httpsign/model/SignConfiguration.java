@@ -6,21 +6,33 @@ import java.util.List;
 
 
 public class SignConfiguration {
-    protected List<DerivedComponent> derivedComponentList=new ArrayList<>();
-    protected List<String> mandatoryHeader=new ArrayList<>();
+    protected List<DerivedComponent> derivedRequestComponentList=new ArrayList<>();
+    protected List<DerivedComponent> derivedResponseComponentList=new ArrayList<>();
+    protected List<String> mandatoryRequestHeader=new ArrayList<>();
+    protected List<String> mandatoryResponseHeader=new ArrayList<>();
 
     protected Signature signature;
 
-    public List<DerivedComponent> getDerivedComponentList() {
-        return derivedComponentList;
+    public List<DerivedComponent> getDerivedRequestComponentList() {
+        return derivedRequestComponentList;
     }
 
-    public void setDerivedComponentList(List<DerivedComponent> derivedComponentList) {
-        this.derivedComponentList = derivedComponentList;
+    public List<DerivedComponent> getDerivedResponseComponentList() {
+        return derivedResponseComponentList;
     }
 
-    public List<String> getMandatoryHeader() {
-        return mandatoryHeader;
+    public List<String> getMandatoryResponseHeader() {
+        return mandatoryResponseHeader;
+    }
+
+    public void setMandatoryResponseHeader(List<String> mandatoryResponseHeader) {
+        this.mandatoryResponseHeader = mandatoryResponseHeader;
+    }
+
+
+
+    public List<String> getMandatoryRequestHeader() {
+        return mandatoryRequestHeader;
     }
 
     public Signature getSignature() {
@@ -31,8 +43,8 @@ public class SignConfiguration {
         this.signature = signature;
     }
 
-    public void setMandatoryHeader(List<String> mandatoryHeader) {
-        this.mandatoryHeader = mandatoryHeader;
+    public void setMandatoryRequestHeader(List<String> mandatoryHeader) {
+        this.mandatoryRequestHeader = mandatoryHeader;
     }
 
 

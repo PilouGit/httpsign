@@ -1,6 +1,7 @@
 package fr.pilou.security.httpsign.filter;
 
 import fr.pilou.security.httpsign.exception.SignerException;
+import fr.pilou.security.httpsign.model.SignConfiguration;
 import fr.pilou.security.httpsign.service.SigningResponse;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,12 +21,14 @@ import java.security.Security;
 @Order(2)
 public class SignFilter extends OncePerRequestFilter {
 
+    private final SignConfiguration signConfiguration;
     SigningResponse signingResponse;
 
-    public SignFilter( SigningResponse signingResponse) {
+    public SignFilter(SigningResponse signingResponse, SignConfiguration signConfiguration) {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
         this.signingResponse = signingResponse;
+        this.signConfiguration=signConfiguration;
     }
 
     protected void doFilterInternal(
@@ -36,7 +39,7 @@ public class SignFilter extends OncePerRequestFilter {
 
 
         try {
-            Pair<String, String> signature=this.signingResponse.signResponse(request,response);
+            Pair<String, String> signature=this.signingResponse.signResponse(request,response,signConfiguration);
             response.setHeader("Signature-Input", "sig="+ signature.getLeft());
             response.setHeader("Signature", "sig=:"+ signature.getRight()+":");
         } catch (SignerException e) {
@@ -49,11 +52,11 @@ public class SignFilter extends OncePerRequestFilter {
 
 
     @Bean
-    public FilterRegistrationBean<SignFilter> mySignFilter(@Autowired SigningResponse signingResponse)
+    public FilterRegistrationBean<SignFilter> mySignFilter(@Autowired SigningResponse signingResponse,@Autowired SignConfiguration signConfiguration )
     {
         FilterRegistrationBean<SignFilter> bean = new FilterRegistrationBean<>();
 
-        bean.setFilter(new SignFilter(signingResponse));
+        bean.setFilter(new SignFilter(signingResponse, signConfiguration));
         bean.addUrlPatterns("/*");
 
         return bean;

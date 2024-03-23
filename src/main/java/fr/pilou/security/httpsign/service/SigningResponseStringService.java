@@ -17,10 +17,12 @@ import java.util.Map;
 class SigningResponseStringService {
 
 
-    private String escapeString(String key)
+
+    private String escapeString(String key,boolean request)
     {
         StringBuilder builder=new StringBuilder();
-        builder.append('"').append(StringUtils.lowerCase(key)).append('"');
+        builder.append('"').append(StringUtils.lowerCase(key));
+        if (request) builder.append("\";req");else builder.append('"');
         return builder.toString();
     }
     private long getUnixTimeStamp()
@@ -29,8 +31,14 @@ class SigningResponseStringService {
 
     }
 
-    public Pair<String, String> createSigningString(final List<String> required, HttpHeaders headers,
-                                                    final Map<DerivedComponent,String> derivatedValue,
+    public Pair<String, String> createSigningString(final List<String> requiredRequestHeaders,
+                                                    final List<String> requiredResponseHeaders,
+                                                    HttpHeaders requestHeaders,
+                                                    HttpHeaders responseHeaders,
+
+                                                    final Map<DerivedComponent,String> requestDerivatedComponent,
+                                                    final Map<DerivedComponent,String> reponseDerivatedComponent,
+
                                                     Signature signature )
     {
 
@@ -40,16 +48,29 @@ class SigningResponseStringService {
 
         StringBuilder builder=new StringBuilder();
         List<String> signatureParamsKey=new ArrayList<>();
-        derivatedValue.forEach((derivedComponent,value)->
+        reponseDerivatedComponent.forEach((derivedComponent,value)->
         {
-            String key=escapeString(derivedComponent.getDerivedComponentString());
+            String key= escapeString(derivedComponent.getDerivedComponentString(),false);
             builder.append(key).append(": ").append(value).append(StringUtils.LF);
             signatureParamsKey.add(key);
         });
-        required.forEach(requiredHeader->
+        requestDerivatedComponent.forEach((derivedComponent,value)->
+        {
+            String key= escapeString(derivedComponent.getDerivedComponentString(),true);
+            builder.append(key).append(": ").append(value).append(StringUtils.LF);
+            signatureParamsKey.add(key);
+        });
+        requiredRequestHeaders.forEach(requiredHeader->
                 {
-                    String key=escapeString(requiredHeader);
-                    builder.append(key).append(": ").append(headers.getFirst(requiredHeader)).append(StringUtils.LF);
+                    String key= escapeString(requiredHeader,true);
+                    builder.append(key).append(": ").append(requestHeaders.getFirst(requiredHeader.toLowerCase())).append(StringUtils.LF);
+                    signatureParamsKey.add(key);
+                }
+        );
+        requiredResponseHeaders.forEach(requiredHeader->
+                {
+                    String key= escapeString(requiredHeader,false);
+                    builder.append(key).append(": ").append(responseHeaders.getFirst(requiredHeader.toLowerCase())).append(StringUtils.LF);
                     signatureParamsKey.add(key);
                 }
         );
@@ -65,8 +86,8 @@ class SigningResponseStringService {
         StringBuilder signatureParams=new StringBuilder();
         signatureParams.append("(").append(StringUtils.join(signatureParamsKey,' ')).append(");");
         List<String> params=new ArrayList<>();
-        params.add("alg="+escapeString(signature.getAlgorithm().getPortableName()));
-        params.add("keyid="+escapeString(signature.getKeyId()));
+        params.add("alg="+ escapeString(signature.getAlgorithm().getPortableName(),false ));
+        params.add("keyid="+ escapeString(signature.getKeyId(),false));
         params.add("created="+creationTime);
         params.add("expires="+expirationTime);
         if (signature.isWithNonce())
