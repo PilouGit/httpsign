@@ -34,7 +34,7 @@ public class DigestFilter extends OncePerRequestFilter {
             digester = MessageDigest.getInstance("SHA-256");
 
         digester.update(wrappedResponse.getContentAsByteArray());
-            response.setHeader("Content-Digest","sha-256=:"+ Base64.getEncoder().encodeToString(digester.digest()));
+            response.setHeader("Content-Digest","sha-256=:"+ Base64.getEncoder().encodeToString(digester.digest())+':');
         } catch (NoSuchAlgorithmException e) {
             throw new IOException(e);
         }

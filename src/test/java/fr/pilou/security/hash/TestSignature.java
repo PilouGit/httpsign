@@ -8,6 +8,8 @@ import fr.pilou.security.httpsign.service.SigningResponse;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.*;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 @SpringBootTest
 public class TestSignature {
@@ -57,14 +68,32 @@ public class TestSignature {
         signConfiguration.getMandatoryResponseHeader().add("Date");
         Signature signature=new Signature();
         signature.setAlgorithm(SignerAlgorithm.ECDSA_SHA384);
-        signature.setWithNonce(false);
+        signature.setWithNonce(true);
         signature.setTimeBeforeExpiration(3L);
         signature.setKeyId(StringUtils.lowerCase(RandomStringUtils.randomAlphanumeric(5)));
         signConfiguration.setSignature(signature);
 return signConfiguration;
     }
+    public PrivateKey readPKCS8PrivateKey() throws Exception {
+        File file=new File("/home/pilou/key.pem");
+        String key = new String(Files.readAllBytes(file.toPath()), Charset.defaultCharset());
+        ;
+        KeyFactory factory = KeyFactory.getInstance("EC","BC");
+
+        String publicKeyPEM = key
+                .replace("-----BEGIN EC PRIVATE KEY-----", "")
+                .replaceAll(System.lineSeparator(), "")
+                .replace("-----END EC PRIVATE KEY-----", "");
+
+        byte[] encoded = Base64.getDecoder().decode(publicKeyPEM);
+
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
+        return (PrivateKey) factory.generatePublic(keySpec);
+
+    }
     @Test
-    public void verifySignature() throws IOException {
+    public void verifySignature() throws Exception {
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         init();
 
         Pair<String, String> result = this.signingResponse.signatureString(this.request, this.response,getSignConfiguration());
@@ -75,6 +104,12 @@ return signConfiguration;
                 "\"date\";req: Tue, 20 Apr 2021 02:07:55 GMT\n" +
                 "\"@signature-params\": (\"@method\";req \"content-digest\" \"date\" \"date\";req)";
 
-        System.err.println(result.getKey());
+        String key=result.getKey();
+        System.err.println(key);
+
+        java.security.Signature signature = java.security.Signature.getInstance("SHA384withECDSA");
+        signature.initSign(readPKCS8PrivateKey());
+        signature.update(key.getBytes(StandardCharsets.UTF_8));
+        System.err.println(Base64.getEncoder().encodeToString(signature.sign()));
     }
 }

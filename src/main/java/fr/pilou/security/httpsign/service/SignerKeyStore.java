@@ -63,7 +63,13 @@ public class SignerKeyStore {
         Signature signature = Signature.getInstance(signerAlgorithm.getJvmName());
         signature.initSign(keyPair.getPrivate());
         signature.update(plainText.getBytes(StandardCharsets.UTF_8));
-  return Base64.getEncoder().encodeToString(signature.sign());
+  String result= Base64.getEncoder().encodeToString(signature.sign());
+        /*    signature = Signature.getInstance(signerAlgorithm.getJvmName());
+            signature.initVerify(keyPair.getPublic());
+            signature.update(plainText.getBytes(StandardCharsets.UTF_8));
+   System.err.println(signature.verify(Base64.getDecoder().decode(result)));
+*/
+  return result;
     } catch (NoSuchAlgorithmException |
              SignatureException |InvalidKeyException e)
     {
